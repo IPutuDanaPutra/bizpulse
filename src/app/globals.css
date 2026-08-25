@@ -55,8 +55,10 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  /* brand primary, from the logo — same hex in both modes. Used sparingly: AI moments, active nav, primary buttons. */
+  --primary: #ff1616;
+  --primary-foreground: #fafafa;
+  --primary-warm: #ff7a45; /* gradient partner for AI treatments only — never used solid */
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -75,19 +77,16 @@
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-primary: #ff1616;
+  --sidebar-primary-foreground: #fafafa;
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  /* the one deliberate accent (v2 design plan) — AI insight, today's radar ring, "connected" API key state.
-     Same hex in light and dark: it already contrasts against both zinc-50 and zinc-950. */
-  --signal-blue: #4a6cf7;
-  --signal-blue-foreground: #fafafa;
-  /* second (and last) reserved functional color — error/destructive states only, never decorative. */
-  --error-red: #dc3b3b;
-  --error-red-foreground: #fafafa;
+  /* second (and last) reserved functional color — error/attention states only, never decorative.
+     Amber, not red: --primary is red now (v5), so errors need a distinct hue to stay unambiguous. */
+  --error-amber: #d97706;
+  --error-amber-foreground: #fafafa;
   --font-sans: var(--font-geist-sans);
 }
 
@@ -98,8 +97,9 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: #ff1616;
+  --primary-foreground: #fafafa;
+  --primary-warm: #ff7a45;
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -117,12 +117,14 @@
   --chart-5: oklch(0.269 0 0);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-primary: #ff1616;
+  --sidebar-primary-foreground: #fafafa;
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --error-amber: #d97706;
+  --error-amber-foreground: #fafafa;
 }
 
 @layer base {
@@ -155,5 +157,48 @@
 @media (prefers-reduced-motion: reduce) {
   .stagger-in {
     animation: none;
+  }
+}
+
+/* AI presence markers (v5 §5): a gradient chip + an animated gradient border reserved strictly for
+   "AI is actively generating right now" — never a resting state, so the motion stays meaningful. */
+.ai-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  background: linear-gradient(135deg, color-mix(in oklab, var(--primary) 12%, transparent), color-mix(in oklab, var(--primary-warm) 12%, transparent));
+  border: 1px solid;
+  border-image: linear-gradient(135deg, var(--primary), var(--primary-warm)) 1;
+  color: var(--primary);
+}
+
+@property --ai-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.ai-processing-border {
+  border-radius: var(--radius-lg);
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    conic-gradient(from var(--ai-angle), var(--primary), var(--primary-warm), var(--primary)) border-box;
+  animation: rotate-ai-border 2.5s linear infinite;
+}
+
+@keyframes rotate-ai-border {
+  to {
+    --ai-angle: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-processing-border {
+    animation: none;
+    border-color: var(--primary);
   }
 }

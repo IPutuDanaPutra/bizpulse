@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Dashboard } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
-import { Activity } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { getProfile } from "@/lib/local-store";
 import type { BusinessProfile } from "@/lib/types";
 
@@ -19,12 +19,16 @@ export default function Home() {
 
   if (profile === undefined) return null;
 
-  if (profile === null) {
+  // Hard dependency (v5 §7): never call the weather API with a guessed/default location.
+  // A profile without real coordinates is treated the same as no profile at all.
+  const hasLocation = !!profile?.location?.lat && !!profile?.location?.lon;
+
+  if (!profile || !hasLocation) {
     return (
       <EmptyState
-        icon={Activity}
-        headline="Selamat datang di BizPulse"
-        body="Lengkapi profil usahamu dulu untuk mulai lihat rekomendasi harian."
+        icon={MapPin}
+        headline="Lengkapi lokasi usaha kamu dulu"
+        body="Buat lihat rekomendasi hari ini, BizPulse butuh lokasi usahamu dulu di Profil Bisnis."
         action={<Button render={<Link href="/profile" />}>Isi Profil Bisnis</Button>}
       />
     );

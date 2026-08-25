@@ -75,6 +75,7 @@ export interface Recommendation {
   primaryAction: string;
   alternatives: RecommendationAlternative[];
   generatedAt: string;
+  savedAt?: string; // set when the user taps "Simpan" — a real, persisted state change
 }
 
 /** @deprecated superseded by Recommendation (v4) — kept so old cached v2/v3 entries don't crash JSON.parse. */

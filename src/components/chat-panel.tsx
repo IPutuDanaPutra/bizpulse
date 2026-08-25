@@ -7,9 +7,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ContextCards } from "@/components/context-cards";
 import { EmptyState } from "@/components/empty-state";
-import { Send, MessageSquare, Loader2 } from "lucide-react";
+import { Send, MessageSquare, Package } from "lucide-react";
+import { findMentionedProduct } from "@/lib/find-mentioned-product";
 import type { BusinessProfile, HolidayEntry, MenuItem, WeatherDay } from "@/lib/types";
 
 const FOLLOW_UPS = ["Kenapa confidence-nya cuma segini?", "Bandingkan sama kemarin", "Ada rekomendasi lain?"];
@@ -57,9 +57,9 @@ export function ChatPanel({
         <SheetHeader className="border-b">
           <SheetTitle className="flex items-center gap-2">
             <MessageSquare className="size-4" /> Chat lebih lanjut
+            <span className="ai-chip">AI</span>
           </SheetTitle>
           <SheetDescription>Tanya apa saja soal rekomendasi hari ini.</SheetDescription>
-          <ContextCards hasMenuItems={menuItems.length > 0} />
         </SheetHeader>
 
         <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
@@ -76,23 +76,29 @@ export function ChatPanel({
               body="Mulai dengan tanya sesuatu soal rekomendasi hari ini."
             />
           ) : (
-            messages.map((m) => (
-              <div
-                key={m.id}
-                className={`flex flex-col gap-1 rounded-lg px-3 py-2 text-sm ${
-                  m.role === "user" ? "ml-8 self-end bg-[var(--signal-blue)] text-[var(--signal-blue-foreground)]" : "mr-8 self-start bg-muted"
-                }`}
-              >
-                {m.parts.map((part, i) =>
-                  part.type === "text" ? <span key={i}>{part.text}</span> : null
-                )}
-              </div>
-            ))
-          )}
-          {isStreaming && (
-            <div className="mr-8 flex items-center gap-1.5 self-start text-sm text-muted-foreground">
-              <Loader2 className="size-3.5 animate-spin" /> Mengetik...
-            </div>
+            messages.map((m, i) => {
+              const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+              const isLastStreaming = isStreaming && i === messages.length - 1 && m.role === "assistant";
+              const mentioned = m.role === "assistant" ? findMentionedProduct(text, menuItems) : null;
+
+              return (
+                <div
+                  key={m.id}
+                  className={`flex flex-col gap-1 rounded-lg px-3 py-2 text-sm ${
+                    m.role === "user"
+                      ? "ml-8 self-end bg-[var(--primary)] text-[var(--primary-foreground)]"
+                      : `mr-8 self-start bg-muted ${isLastStreaming ? "ai-processing-border" : ""}`
+                  }`}
+                >
+                  <span>{text || (isLastStreaming ? "..." : "")}</span>
+                  {mentioned && (
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Package className="size-3" /> Menyebut {mentioned.name} dari Menu & Produk kamu.
+                    </span>
+                  )}
+                </div>
+              );
+            })
           )}
           {showFollowUps && (
             <div className="flex flex-wrap gap-1.5 pt-1">

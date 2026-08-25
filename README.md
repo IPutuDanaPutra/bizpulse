@@ -6,7 +6,7 @@ A dashboard for Indonesian UMKM (micro/small business) owners that pulls today's
 
 ## Information architecture
 
-- **Dashboard** — a full-width Pulse Strip (one segment per forecast day, height = signal intensity) + a structured Recommendation Card (headline, reasoning, confidence meter, primary action, alternatives) with a "Chat lebih lanjut" panel for follow-up questions, plus a context sidebar (weather, holiday, your products).
+- **Dashboard** — a full-width day-strip to jump between forecast days + a structured Recommendation Card (headline, reasoning, confidence meter, primary action, alternatives, save) with a "Chat lebih lanjut" panel for follow-up questions, plus a context sidebar (weather, holiday, your products).
 - **Profil Bisnis** — guided one-question-at-a-time setup on first visit; a full form for editing afterward (name, category, location/address search, area type, weather exposure, delivery status, category-specific fields).
 - **Menu & Produk** — upload a menu photo, PDF, or spreadsheet with live per-step status; the extracted product list feeds the AI so recommendations name specific products.
 - **Settings** — AI API key (bring-your-own-key, OpenAI-compatible, stored in `localStorage`, never sent anywhere but the provider call itself).
@@ -35,7 +35,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000), fill in your Profil, then add your own DeepSeek API key under Settings — the app has no server-side key, everyone brings their own.
+Open [http://localhost:3000](http://localhost:3000), fill in your Profil Bisnis, then add your own OpenAI-compatible API key (e.g. DeepSeek) under Settings — the app has no server-side key, everyone brings their own.
 
 ## Environment variables
 

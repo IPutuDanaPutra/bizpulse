@@ -210,7 +210,7 @@ export default function MenuPage() {
           <div
             {...getRootProps()}
             className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed p-10 text-center transition-colors ${
-              isDragActive ? "border-[var(--signal-blue)] bg-[var(--signal-blue)]/5" : "border-border"
+              isDragActive ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-border"
             }`}
           >
             <input {...getInputProps()} />
@@ -222,9 +222,9 @@ export default function MenuPage() {
       </Card>
 
       {uploadError && (
-        <Alert className="border-[var(--error-red)]/40">
-          <AlertTriangle className="size-4 text-[var(--error-red)]" />
-          <AlertDescription className="text-[var(--error-red)]">{uploadError}</AlertDescription>
+        <Alert className="border-[var(--error-amber)]/40">
+          <AlertTriangle className="size-4 text-[var(--error-amber)]" />
+          <AlertDescription className="text-[var(--error-amber)]">{uploadError}</AlertDescription>
         </Alert>
       )}
 
@@ -281,6 +281,7 @@ export default function MenuPage() {
               {draftSource === "pdf" && <FileText className="size-4" />}
               {draftSource === "spreadsheet" && <FileSpreadsheet className="size-4" />}
               Hasil ekstraksi — periksa dulu sebelum disimpan
+              {(draftSource === "image" || draftSource === "pdf") && <span className="ai-chip">AI</span>}
             </CardTitle>
             <CardDescription>Koreksi apa saja yang kurang tepat.</CardDescription>
           </CardHeader>

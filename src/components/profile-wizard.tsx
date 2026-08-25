@@ -57,7 +57,7 @@ export function ProfileWizard() {
             {STEPS.map((_, i) => (
               <span
                 key={i}
-                className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-[var(--signal-blue)]" : "bg-muted"}`}
+                className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-[var(--primary)]" : "bg-muted"}`}
               />
             ))}
           </div>

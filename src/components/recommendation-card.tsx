@@ -5,14 +5,14 @@ import Link from "next/link";
 import { useObject } from "@ai-sdk/react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Sparkles, KeyRound, Check, MessageSquare } from "lucide-react";
+import { KeyRound, Check, MessageSquare, Package } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { ThinkingTrace } from "@/components/thinking-trace";
 import { ConfidenceMeter } from "@/components/confidence-meter";
 import { RecommendationSchema } from "@/lib/recommendation-schema";
+import { findMentionedProduct } from "@/lib/find-mentioned-product";
 import type { BusinessProfile, HolidayEntry, MenuItem, Recommendation, WeatherDay } from "@/lib/types";
 import { getCachedRecommendation, setCachedRecommendation } from "@/lib/insight-cache";
 
@@ -32,7 +32,6 @@ export function RecommendationCard({
   onOpenChat: () => void;
 }) {
   const [cached, setCached] = useState<Recommendation | null>(null);
-  const [applied, setApplied] = useState(false);
   const requestedFor = useRef<string | null>(null);
 
   const { object, submit, isLoading, error } = useObject({
@@ -64,7 +63,6 @@ export function RecommendationCard({
     if (!apiKey || !today) return;
     if (requestedFor.current === today.date) return;
     requestedFor.current = today.date;
-    setApplied(false);
 
     const hit = getCachedRecommendation(profile, today.date);
     if (hit) {
@@ -77,15 +75,37 @@ export function RecommendationCard({
   }, [apiKey, today?.date]);
 
   const rec = cached ?? object;
+  const isGenerating = isLoading && !cached;
+
+  function handleSave() {
+    if (!today) return;
+    const full: Recommendation = cached ?? {
+      date: today.date,
+      headline: rec?.headline ?? "",
+      reasoning: rec?.reasoning ?? "",
+      confidenceTier: rec?.confidenceTier ?? "outlook",
+      confidenceScore: rec?.confidenceScore ?? 0,
+      primaryAction: rec?.primaryAction ?? "",
+      alternatives: (rec?.alternatives ?? []).filter((a): a is { label: string; confidence: number } => !!a?.label),
+      generatedAt: new Date().toISOString(),
+    };
+    const saved = { ...full, savedAt: new Date().toISOString() };
+    setCachedRecommendation(profile, saved);
+    setCached(saved);
+    toast.success("Tersimpan.");
+  }
+
+  const mentionedProduct =
+    rec?.headline && menuItems.length > 0
+      ? findMentionedProduct(`${rec.headline} ${rec.reasoning ?? ""} ${rec.primaryAction ?? ""}`, menuItems)
+      : null;
 
   return (
-    <Card className="border-[var(--signal-blue)]/40 bg-[var(--signal-blue)]/5">
+    <Card className={isGenerating ? "ai-processing-border" : "border border-border"}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Sparkles className="size-4 text-[var(--signal-blue)]" /> Rekomendasi Hari Ini
-          <Badge className="bg-[var(--signal-blue)] text-[var(--signal-blue-foreground)] hover:bg-[var(--signal-blue)]">
-            AI
-          </Badge>
+          Rekomendasi Hari Ini
+          <span className="ai-chip">AI</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -102,7 +122,7 @@ export function RecommendationCard({
           />
         ) : error ? (
           <div className="flex items-center gap-3">
-            <p className="text-sm text-[var(--error-red)]">Rekomendasi hari ini gagal dibuat.</p>
+            <p className="text-sm text-[var(--error-amber)]">Rekomendasi hari ini gagal dibuat.</p>
             <Button size="sm" variant="outline" onClick={generate}>
               Coba lagi
             </Button>
@@ -120,21 +140,13 @@ export function RecommendationCard({
               <ConfidenceMeter tier={rec.confidenceTier} score={rec.confidenceScore} />
             )}
 
-            {rec.primaryAction && (
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  size="sm"
-                  disabled={applied}
-                  onClick={() => {
-                    setApplied(true);
-                    toast.success("Diterapkan.");
-                  }}
-                >
-                  {applied ? <Check className="size-4" /> : null}
-                  {applied ? "Diterapkan" : "Terapkan"}
-                </Button>
-                <p className="text-sm font-medium">{rec.primaryAction}</p>
-              </div>
+            {rec.primaryAction && <p className="text-sm font-medium">{rec.primaryAction}</p>}
+
+            {mentionedProduct && (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Package className="size-3.5" /> Menyebut {mentionedProduct.name} karena kamu tambahkan produk ini di
+                Menu & Produk.
+              </p>
             )}
 
             {rec.alternatives && rec.alternatives.length > 0 && (
@@ -157,9 +169,15 @@ export function RecommendationCard({
             )}
 
             <Separator />
-            <Button size="sm" variant="ghost" className="self-start" onClick={onOpenChat}>
-              <MessageSquare className="size-4" /> Chat lebih lanjut
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button size="sm" variant="outline" disabled={!!cached?.savedAt} onClick={handleSave}>
+                {cached?.savedAt ? <Check className="size-4" /> : null}
+                {cached?.savedAt ? "Tersimpan" : "Simpan"}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={onOpenChat}>
+                <MessageSquare className="size-4" /> Chat lebih lanjut
+              </Button>
+            </div>
           </div>
         ) : (
           <ThinkingTrace />

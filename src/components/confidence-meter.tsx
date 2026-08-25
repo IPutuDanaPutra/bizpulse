@@ -11,7 +11,7 @@ export function ConfidenceMeter({ tier, score }: { tier: ConfidenceTier; score: 
     <div className="flex items-center gap-2">
       <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
         <div
-          className="h-full rounded-full bg-[var(--signal-blue)] transition-[width] duration-500"
+          className="h-full rounded-full bg-[var(--primary)] transition-[width] duration-500"
           style={{ width: `${Math.max(4, Math.min(100, score))}%` }}
         />
       </div>

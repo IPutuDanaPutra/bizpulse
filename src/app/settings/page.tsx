@@ -77,8 +77,8 @@ export default function SettingsPage() {
         <CardContent className="flex flex-col gap-4">
           {savedKey ? (
             <>
-              <Alert className="border-[var(--signal-blue)]/40">
-                <CheckCircle2 className="size-4 text-[var(--signal-blue)]" />
+              <Alert className="border-[var(--primary)]/40">
+                <CheckCircle2 className="size-4 text-[var(--primary)]" />
                 <AlertTitle>Terhubung</AlertTitle>
                 <AlertDescription className="font-mono">{maskApiKey(savedKey)}</AlertDescription>
               </Alert>
@@ -129,8 +129,8 @@ export default function SettingsPage() {
               </div>
 
               {testError && (
-                <Alert className="border-[var(--error-red)]/40 text-[var(--error-red)]">
-                  <AlertDescription className="text-[var(--error-red)]">{testError}</AlertDescription>
+                <Alert className="border-[var(--error-amber)]/40 text-[var(--error-amber)]">
+                  <AlertDescription className="text-[var(--error-amber)]">{testError}</AlertDescription>
                 </Alert>
               )}
             </>

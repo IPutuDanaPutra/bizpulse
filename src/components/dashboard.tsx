@@ -7,7 +7,7 @@ import { fetchNextHolidays } from "@/lib/holidays";
 import { getApiKey, getMenuItems } from "@/lib/local-store";
 import type { BusinessProfile, HolidayEntry, MenuItem, WeatherDay } from "@/lib/types";
 import { BUSINESS_CATEGORY_LABELS } from "@/lib/types";
-import { PulseStrip } from "@/components/pulse-strip";
+import { DayStrip } from "@/components/day-strip";
 import { RecommendationCard } from "@/components/recommendation-card";
 import { ChatPanel } from "@/components/chat-panel";
 import { HolidayCard, HolidayCardSkeleton } from "@/components/holiday-card";
@@ -24,6 +24,7 @@ export function Dashboard({ profile }: { profile: BusinessProfile }) {
   const [keyLoaded, setKeyLoaded] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [chatOpen, setChatOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync read from localStorage on mount
@@ -39,7 +40,7 @@ export function Dashboard({ profile }: { profile: BusinessProfile }) {
   }, [profile.location.lat, profile.location.lon]);
 
   const nextHoliday = holidays?.[0] ?? null;
-  const today = weather?.[0] ?? null;
+  const selectedDay = weather?.[selectedIndex] ?? null;
 
   return (
     <div className="flex w-full flex-col gap-6 p-6">
@@ -57,19 +58,19 @@ export function Dashboard({ profile }: { profile: BusinessProfile }) {
 
       <div className="stagger-in" style={{ animationDelay: "0ms" }}>
         {weather ? (
-          <PulseStrip days={weather} holiday={nextHoliday} />
+          <DayStrip days={weather} holiday={nextHoliday} selectedIndex={selectedIndex} onSelect={setSelectedIndex} />
         ) : (
-          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-14 w-full rounded-full" />
         )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="stagger-in" style={{ animationDelay: "120ms" }}>
-          {today && keyLoaded ? (
+          {selectedDay && keyLoaded ? (
             <RecommendationCard
               apiKey={apiKey}
               profile={profile}
-              today={today}
+              today={selectedDay}
               holiday={nextHoliday}
               menuItems={menuItems}
               onOpenChat={() => setChatOpen(true)}
@@ -81,7 +82,7 @@ export function Dashboard({ profile }: { profile: BusinessProfile }) {
 
         <div className="flex flex-col gap-4">
           <div className="stagger-in" style={{ animationDelay: "180ms" }}>
-            {today ? <WeatherDetailCard today={today} /> : <WeatherDetailCardSkeleton />}
+            {selectedDay ? <WeatherDetailCard today={selectedDay} /> : <WeatherDetailCardSkeleton />}
           </div>
           <div className="stagger-in" style={{ animationDelay: "240ms" }}>
             {holidays ? <HolidayCard holiday={nextHoliday} /> : <HolidayCardSkeleton />}
@@ -97,7 +98,7 @@ export function Dashboard({ profile }: { profile: BusinessProfile }) {
         onOpenChange={setChatOpen}
         apiKey={apiKey}
         profile={profile}
-        today={today}
+        today={selectedDay}
         holiday={nextHoliday}
         menuItems={menuItems}
       />

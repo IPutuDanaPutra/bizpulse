@@ -41,7 +41,7 @@ export function TaskRows({
         return (
           <li key={step} className={`flex items-center gap-2 ${isDone || isActive ? "text-foreground" : "text-muted-foreground/50"}`}>
             {isDone ? (
-              <Check className="size-3.5 text-[var(--signal-blue)]" />
+              <Check className="size-3.5 text-[var(--primary)]" />
             ) : isActive ? (
               <Loader2 className="size-3.5 animate-spin" />
             ) : (

@@ -18,7 +18,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CommandPalette } from "@/components/command-palette";
-import { LayoutDashboard, Building2, Package, Settings, Info, ChevronsLeft, ChevronsRight, Activity } from "lucide-react";
+import { Logo } from "@/components/logo";
+import { LayoutDashboard, Building2, Package, Settings, Info, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 const NAV = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -41,15 +42,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <CommandPalette />
       <Sidebar collapsible="icon" className="hidden md:flex">
         <SidebarHeader>
-          <div className="flex items-center gap-2 px-2 py-1.5">
-            <span className="relative flex size-5 shrink-0 items-center justify-center">
-              <Activity className="size-5 text-[var(--signal-blue)]" />
-              <span className="absolute -right-0.5 -top-0.5 flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-[var(--signal-blue)] opacity-75" />
-                <span className="relative inline-flex size-2 rounded-full bg-[var(--signal-blue)]" />
-              </span>
-            </span>
-            <span className="font-semibold group-data-[collapsible=icon]:hidden">BizPulse</span>
+          <div className="px-2 py-1.5 group-data-[collapsible=icon]:hidden">
+            <Logo height={22} />
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -64,7 +58,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     tooltip={item.label}
                     className={
                       active
-                        ? "rounded-l-none border-l-2 border-[var(--signal-blue)] bg-transparent! font-medium text-foreground!"
+                        ? "rounded-l-none border-l-2 border-[var(--primary)] bg-transparent! font-medium text-foreground!"
                         : ""
                     }
                   >
@@ -86,7 +80,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 tooltip={ABOUT.label}
                 className={
                   pathname === ABOUT.href
-                    ? "rounded-l-none border-l-2 border-[var(--signal-blue)] bg-transparent! font-medium text-foreground!"
+                    ? "rounded-l-none border-l-2 border-[var(--primary)] bg-transparent! font-medium text-foreground!"
                     : ""
                 }
               >
@@ -106,8 +100,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <SidebarInset>
         <header className="flex h-14 items-center gap-2 border-b px-4 md:hidden">
-          <Activity className="size-5 text-[var(--signal-blue)]" />
-          <span className="font-semibold">BizPulse</span>
+          <Logo height={20} />
           <div className="ml-auto">
             <ThemeToggle />
           </div>
@@ -140,7 +133,7 @@ function BottomTabBar({ pathname }: { pathname: string }) {
             key={item.href}
             href={item.href}
             className={`flex flex-1 flex-col items-center gap-0.5 py-1.5 text-xs ${
-              active ? "text-[var(--signal-blue)]" : "text-muted-foreground"
+              active ? "text-[var(--primary)]" : "text-muted-foreground"
             }`}
           >
             <item.icon className="size-5" strokeWidth={active ? 2.5 : 2} />
