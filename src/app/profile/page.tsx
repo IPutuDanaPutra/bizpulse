@@ -100,7 +100,7 @@ export default function ProfilePage() {
       isOnLocationService: category === "jasa" ? values.isOnLocationService : undefined,
     };
     saveProfile(profile);
-    toast.success("Profil usaha tersimpan.");
+    toast.success("Profil bisnis tersimpan.");
     if (isFirstRun) router.push("/");
   }
 

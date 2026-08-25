@@ -4,11 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UploadCloud, Loader2, Trash2, ImageIcon, FileText, FileSpreadsheet } from "lucide-react";
+import { ImagePlus, Loader2, Trash2, Tag, ImageIcon, FileText, FileSpreadsheet, AlertTriangle } from "lucide-react";
 import type { MenuItem } from "@/lib/types";
 import { getApiKey, getMenuItems, saveMenuItems } from "@/lib/local-store";
 import { parseSpreadsheet, type SpreadsheetPreview } from "@/lib/parse-spreadsheet";
@@ -38,21 +39,35 @@ export default function MenuPage() {
     category: "",
     price: "",
   });
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [extractionWarning, setExtractionWarning] = useState<string | null>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync read from localStorage on mount
     setItems(getMenuItems());
   }, []);
 
+  // Some items missing a price is a soft signal that part of the source (usually a photo) wasn't fully
+  // legible — not a hard failure, just a nudge to check the editable table below.
+  function checkExtractionQuality(items: Array<{ price?: number | null }> | undefined) {
+    if (items && items.length > 0 && items.some((it) => it.price == null)) {
+      setExtractionWarning("Sebagian teks nggak terbaca jelas. Cek dan lengkapi manual di tabel di bawah.");
+    } else {
+      setExtractionWarning(null);
+    }
+  }
+
   const onDrop = useCallback(async (accepted: File[]) => {
     const file = accepted[0];
     if (!file) return;
     setDraft(null);
     setSpreadsheet(null);
+    setUploadError(null);
+    setExtractionWarning(null);
 
     if (file.type.startsWith("image/")) {
       const apiKey = getApiKey();
-      if (!apiKey) return toast.error("Tambahkan API key di Settings dulu untuk membaca gambar menu.");
+      if (!apiKey) return setUploadError("Tambahkan API key di Settings dulu untuk membaca gambar menu.");
       setProcessingLabel("Membaca gambar menu...");
       try {
         const dataUrl = await fileToDataUrl(file);
@@ -65,14 +80,15 @@ export default function MenuPage() {
         if (!res.ok) throw new Error(data.error);
         setDraft(toDraftRows(data.items));
         setDraftSource("image");
+        checkExtractionQuality(data.items);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Gagal membaca gambar menu.");
+        setUploadError(err instanceof Error ? err.message : "Gagal membaca gambar menu.");
       } finally {
         setProcessingLabel(null);
       }
     } else if (file.type === "application/pdf") {
       const apiKey = getApiKey();
-      if (!apiKey) return toast.error("Tambahkan API key di Settings dulu untuk membaca PDF.");
+      if (!apiKey) return setUploadError("Tambahkan API key di Settings dulu untuk membaca PDF.");
       setProcessingLabel("Mengekstrak dari PDF...");
       try {
         const fileBase64 = await fileToBase64(file);
@@ -85,8 +101,9 @@ export default function MenuPage() {
         if (!res.ok) throw new Error(data.error);
         setDraft(toDraftRows(data.items));
         setDraftSource("pdf");
+        checkExtractionQuality(data.items);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Gagal membaca PDF.");
+        setUploadError(err instanceof Error ? err.message : "Gagal membaca PDF.");
       } finally {
         setProcessingLabel(null);
       }
@@ -97,14 +114,20 @@ export default function MenuPage() {
         setSpreadsheet(preview);
         setColMap({ name: preview.headers[0] ?? "", category: "", price: preview.headers[1] ?? "" });
       } catch {
-        toast.error("Gagal membaca spreadsheet.");
+        setUploadError("Gagal membaca spreadsheet.");
       } finally {
         setProcessingLabel(null);
       }
     }
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: ACCEPT, multiple: false });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    onDropRejected: () =>
+      setUploadError("Format ini belum didukung. Pakai gambar (JPG/PNG), PDF, atau spreadsheet (XLSX/CSV)."),
+    accept: ACCEPT,
+    multiple: false,
+  });
 
   function applyColumnMapping() {
     if (!spreadsheet || !colMap.name) return;
@@ -173,12 +196,19 @@ export default function MenuPage() {
             }`}
           >
             <input {...getInputProps()} />
-            <UploadCloud className="size-8 text-muted-foreground" />
+            <ImagePlus className="size-8 text-muted-foreground" />
             <p className="text-sm font-medium">Tarik file ke sini, atau klik untuk pilih</p>
             <p className="text-xs text-muted-foreground">Foto menu (.jpg/.png), PDF, atau spreadsheet (.xlsx/.csv)</p>
           </div>
         </CardContent>
       </Card>
+
+      {uploadError && (
+        <Alert className="border-[var(--error-red)]/40">
+          <AlertTriangle className="size-4 text-[var(--error-red)]" />
+          <AlertDescription className="text-[var(--error-red)]">{uploadError}</AlertDescription>
+        </Alert>
+      )}
 
       {processingLabel && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -235,6 +265,12 @@ export default function MenuPage() {
             <CardDescription>Koreksi apa saja yang kurang tepat.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
+            {extractionWarning && (
+              <Alert>
+                <AlertTriangle className="size-4 text-muted-foreground" />
+                <AlertDescription>{extractionWarning}</AlertDescription>
+              </Alert>
+            )}
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -305,7 +341,13 @@ export default function MenuPage() {
                       <TableCell>{item.name}</TableCell>
                       <TableCell className="text-muted-foreground">{item.category ?? "-"}</TableCell>
                       <TableCell className="font-mono">
-                        {item.price ? `Rp${item.price.toLocaleString("id-ID")}` : "-"}
+                        {item.price ? (
+                          <span className="flex items-center gap-1">
+                            <Tag className="size-3.5 text-muted-foreground" /> Rp{item.price.toLocaleString("id-ID")}
+                          </span>
+                        ) : (
+                          "-"
+                        )}
                       </TableCell>
                       <TableCell>
                         <Button variant="ghost" size="icon-sm" onClick={() => deleteItem(item.id)}>

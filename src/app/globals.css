@@ -85,6 +85,9 @@
      Same hex in light and dark: it already contrasts against both zinc-50 and zinc-950. */
   --signal-blue: #4a6cf7;
   --signal-blue-foreground: #fafafa;
+  /* second (and last) reserved functional color — error/destructive states only, never decorative. */
+  --error-red: #dc3b3b;
+  --error-red-foreground: #fafafa;
   --font-sans: var(--font-geist-sans);
 }
 

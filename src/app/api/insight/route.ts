@@ -12,7 +12,7 @@ Rules:
 - Give exactly ONE concrete, actionable recommendation — not a list. Pick the single most relevant action for this business profile today.
 - If the business has delivery (own or via platform), reframe rain as opportunity where relevant ("hujan deras justru waktu ramai buat delivery"), not just risk. A walk-in-only business should still be told the honest downside.
 - If a product/menu list is provided, mention a specific product name when it's relevant to the recommendation — don't force it if nothing fits.
-- If nothing in the data is notable (calm weather, no near holiday), say so plainly in one short sentence rather than inventing significance. Do not pad.
+- If nothing in the data is notable (calm weather, no near holiday), say so plainly in one short sentence rather than inventing significance — something like "Kondisi hari ini normal — nggak ada yang perlu diantisipasi khusus." Do not pad.
 - Maximum 2 sentences total.`;
 
 function buildUserPrompt(

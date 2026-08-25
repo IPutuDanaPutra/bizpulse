@@ -34,6 +34,11 @@ export function InsightCard({
 
   const requestedFor = useRef<string | null>(null);
 
+  function generate() {
+    if (!apiKey || !today) return;
+    complete("", { body: { weather: today, holiday, profile, menuItems, apiKey } });
+  }
+
   useEffect(() => {
     if (!apiKey || !today) return;
     if (requestedFor.current === today.date) return;
@@ -44,7 +49,7 @@ export function InsightCard({
       setCompletion(cached.text);
       return;
     }
-    complete("", { body: { weather: today, holiday, profile, menuItems, apiKey } });
+    generate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey, today?.date]);
 
@@ -69,7 +74,12 @@ export function InsightCard({
             </Button>
           </div>
         ) : error ? (
-          <p className="text-sm text-muted-foreground">Tidak bisa memuat rekomendasi AI saat ini. Cek API key kamu di Settings.</p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-[var(--error-red)]">Rekomendasi hari ini gagal dibuat.</p>
+            <Button size="sm" variant="outline" onClick={generate}>
+              Coba lagi
+            </Button>
+          </div>
         ) : completion ? (
           <p className="text-sm">{completion}</p>
         ) : isLoading ? (
