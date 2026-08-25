@@ -115,7 +115,7 @@ export function RecommendationCard({
             headline="Belum terhubung ke AI"
             body="Tambahkan API key di Pengaturan buat dapetin rekomendasi harian."
             action={
-              <Button render={<Link href="/settings" />} size="sm" variant="outline">
+              <Button render={<Link href="/settings" />} nativeButton={false} size="sm" variant="outline">
                 <KeyRound className="size-4" /> Buka Pengaturan
               </Button>
             }

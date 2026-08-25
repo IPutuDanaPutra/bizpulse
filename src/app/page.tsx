@@ -29,7 +29,11 @@ export default function Home() {
         icon={MapPin}
         headline="Lengkapi lokasi usaha kamu dulu"
         body="Buat lihat rekomendasi hari ini, BizPulse butuh lokasi usahamu dulu di Profil Bisnis."
-        action={<Button render={<Link href="/profile" />}>Isi Profil Bisnis</Button>}
+        action={
+          <Button render={<Link href="/profile" />} nativeButton={false}>
+            Isi Profil Bisnis
+          </Button>
+        }
       />
     );
   }

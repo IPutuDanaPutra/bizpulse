@@ -132,7 +132,12 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    /* light mode only — a flat background behind flat cards had nowhere to create depth (v8 §3.2) */
+    background: linear-gradient(180deg, #ffffff 0%, #f4f4f5 100%);
+  }
+  .dark body {
+    background: var(--background);
   }
   html {
     @apply font-sans;
@@ -157,6 +162,67 @@
 @media (prefers-reduced-motion: reduce) {
   .stagger-in {
     animation: none;
+  }
+}
+
+/* Global card shadow (v8 §3.1) — set once here, referenced by the shared Card component so every
+   card app-wide (Recommendation Card, Profil Bisnis sections, Menu & Produk items, Pengaturan panels)
+   picks it up automatically instead of being styled per-instance. */
+.card-shadow {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.04);
+}
+.dark .card-shadow {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.24);
+}
+
+/* Scroll-edge fade (v8 §3.3) — see the ScrollFade component; the two masked/blurred overlays pin to
+   the outer wrapper so they stay fixed at the edge while content scrolls underneath. */
+.scroll-fade-top {
+  background: linear-gradient(to bottom, var(--card) 40%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent);
+  mask-image: linear-gradient(to bottom, black, transparent);
+}
+.scroll-fade-bottom {
+  background: linear-gradient(to top, var(--card) 40%, transparent);
+  -webkit-mask-image: linear-gradient(to top, black, transparent);
+  mask-image: linear-gradient(to top, black, transparent);
+}
+
+/* Tactile buttons (v8 §3.4) — subtle elevation + top highlight + a real press response.
+   Skeuomorphic shadow only; the button surface itself keeps full color/background contrast. */
+.btn-tactile {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.06);
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
+}
+.btn-tactile:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+    0 1px 1px rgba(0, 0, 0, 0.06);
+}
+.dark .btn-tactile {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.24);
+}
+.dark .btn-tactile:active {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
+    0 1px 1px rgba(0, 0, 0, 0.2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-tactile {
+    transition: none;
   }
 }
 

@@ -51,7 +51,7 @@ export function Dashboard({ profile }: { profile: BusinessProfile }) {
             <MapPin className="size-3.5" /> {profile.location.label.split(",")[0]} · {BUSINESS_CATEGORY_LABELS[profile.category]}
           </div>
         </div>
-        <Button render={<Link href="/profile" />} variant="ghost" size="sm">
+        <Button render={<Link href="/profile" />} nativeButton={false} variant="ghost" size="sm">
           <Pencil className="size-4" /> Edit profil
         </Button>
       </div>

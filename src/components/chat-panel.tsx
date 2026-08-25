@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-state";
+import { ScrollFade } from "@/components/scroll-fade";
 import { Send, MessageSquare, Package } from "lucide-react";
 import { findMentionedProduct } from "@/lib/find-mentioned-product";
 import type { BusinessProfile, HolidayEntry, MenuItem, WeatherDay } from "@/lib/types";
@@ -62,7 +63,7 @@ export function ChatPanel({
           <SheetDescription>Tanya apa saja soal rekomendasi hari ini.</SheetDescription>
         </SheetHeader>
 
-        <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
+        <ScrollFade className="min-h-0 flex-1" contentClassName="flex h-full flex-col gap-3 p-4">
           {!apiKey ? (
             <EmptyState
               icon={MessageSquare}
@@ -114,7 +115,7 @@ export function ChatPanel({
               ))}
             </div>
           )}
-        </div>
+        </ScrollFade>
 
         <form
           className="flex items-center gap-2 border-t p-3"

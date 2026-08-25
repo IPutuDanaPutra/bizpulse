@@ -61,41 +61,43 @@ BizPulse dibangun untuk mengisi gap itu: mengubah kesadaran lingkungan (*environ
 
 ```mermaid
 flowchart TD
-    A[User membuka Beranda] --> B{Lokasi bisnis tersimpan?}
-    B -->|Tidak| C[Empty state: lengkapi Profil Bisnis]
-    B -->|Ya| D[Fetch cuaca — Open-Meteo]
-    B -->|Ya| E[Fetch kalender — Nager.Date]
-    D --> F[Gabungkan: cuaca + kalender + Profil Bisnis + Menu Produk]
+    A["User membuka Beranda"] --> B{"Lokasi bisnis tersimpan?"}
+    B -->|"Tidak"| C["Empty state: lengkapi Profil Bisnis"]
+    B -->|"Ya"| D["Fetch cuaca dari Open-Meteo"]
+    B -->|"Ya"| E["Fetch kalender dari Nager.Date"]
+    D --> F["Gabungkan cuaca, kalender, Profil Bisnis, dan Menu Produk"]
     E --> F
-    F --> G[/api/insight]
-    G --> H[DeepSeek API via Vercel AI SDK — streamObject]
-    H --> I[Recommendation Card ter-stream ke client]
-    I --> J{Aksi user}
-    J --> K[Simpan]
-    J --> L[Chat lebih lanjut — /api/chat, konteks yang sama terbawa]
+    F --> G["Next.js API Route"]
+    G --> H["DeepSeek API lewat Vercel AI SDK, streaming"]
+    H --> I["Recommendation Card ter-stream ke client"]
+    I --> J{"Aksi pengguna"}
+    J -->|"Simpan"| K["Rekomendasi tersimpan"]
+    J -->|"Chat lebih lanjut"| L["Panel chat dengan konteks yang sama"]
 ```
 
 ### Lapisan sistem
 
 ```mermaid
 flowchart LR
-    subgraph Client["Browser"]
-        UI["Next.js UI (App Router)"]
-        LS[("localStorage: API key AI, profil, menu")]
+    subgraph Client [Browser]
+        UI["Next.js UI - App Router"]
+        LS[("localStorage: API key AI")]
     end
-    subgraph Server["Vercel Serverless"]
+    subgraph Server [Vercel Serverless]
         API["API Routes"]
     end
-    subgraph External["Layanan Eksternal"]
+    subgraph External [Layanan Eksternal]
         OM["Open-Meteo"]
         ND["Nager.Date"]
         DS["DeepSeek API"]
     end
-    UI -->|request + apiKey dari localStorage| API
+    UI -->|"request"| API
+    LS -.->|"key dikirim per-request"| API
     API --> OM
     API --> ND
     API --> DS
-    DS --> API --> UI
+    DS --> API
+    API --> UI
 ```
 
 **Catatan penting soal API key:** API key AI milik pengguna **tidak pernah disimpan di server**. Key dikirim dari `localStorage` browser ke API Route per-permintaan, diteruskan langsung ke DeepSeek, lalu dibuang — bukan disimpan sebagai environment variable global. Karena itu, deploy dasar BizPulse ke Vercel **tidak memerlukan API key AI sebagai project secret** — setiap pengguna membawa key mereka sendiri lewat halaman Pengaturan.

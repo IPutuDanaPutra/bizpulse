@@ -20,7 +20,7 @@ export function RelevantProductsCard({ items }: { items: MenuItem[] }) {
             headline="Belum ada produk"
             body="Tambahkan menu supaya rekomendasi bisa sebut produk spesifik."
             action={
-              <Button render={<Link href="/menu" />} size="sm" variant="outline">
+              <Button render={<Link href="/menu" />} nativeButton={false} size="sm" variant="outline">
                 Tambah Produk
               </Button>
             }

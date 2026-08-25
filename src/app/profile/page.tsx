@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,7 +14,6 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AddressSearch } from "@/components/address-search";
 import { FieldHint } from "@/components/field-hint";
-import { ProfileWizard } from "@/components/profile-wizard";
 import {
   AREA_TYPE_LABELS,
   BUSINESS_CATEGORY_LABELS,
@@ -57,8 +56,6 @@ const DEFAULTS: FormValues = {
 };
 
 export default function ProfilePage() {
-  const [existingProfile, setExistingProfile] = useState<BusinessProfile | null | undefined>(undefined);
-
   const { control, register, handleSubmit, watch, reset, setValue, formState } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: DEFAULTS,
@@ -66,7 +63,6 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const existing = getProfile();
-    setExistingProfile(existing);
     if (existing) {
       reset({
         businessName: existing.businessName,
@@ -105,12 +101,6 @@ export default function ProfilePage() {
     toast.success("Profil bisnis tersimpan.");
   }
 
-  // Still reading localStorage — avoid a flash of the wizard before we know a profile already exists.
-  if (existingProfile === undefined) return null;
-
-  // First-time setup gets the guided, one-question-at-a-time flow. Editing later uses the full form below.
-  if (existingProfile === null) return <ProfileWizard />;
-
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
       <div>
@@ -132,32 +122,6 @@ export default function ProfilePage() {
             {formState.errors.businessName && (
               <p className="text-xs text-destructive">{formState.errors.businessName.message}</p>
             )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Kategori usaha</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Controller
-              control={control}
-              name="category"
-              render={({ field }) => (
-                <ToggleGroup
-                  variant="outline"
-                  value={[field.value]}
-                  onValueChange={(v) => v[0] && field.onChange(v[0] as BusinessCategory)}
-                  className="flex-wrap justify-start"
-                >
-                  {Object.entries(BUSINESS_CATEGORY_LABELS).map(([value, label]) => (
-                    <ToggleGroupItem key={value} value={value} className="px-3">
-                      {label}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-              )}
-            />
           </CardContent>
         </Card>
 
@@ -197,7 +161,8 @@ export default function ProfilePage() {
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={(v) => v && field.onChange(v as AreaType)}>
                     <SelectTrigger className="w-full">
-                      <SelectValue />
+                      {/* Base UI's Select.Value renders the raw value by default — give it the label lookup explicitly (v8 §2.1) */}
+                      <SelectValue>{(value: AreaType) => AREA_TYPE_LABELS[value]}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(AREA_TYPE_LABELS).map(([value, label]) => (
@@ -231,6 +196,32 @@ export default function ProfilePage() {
                 )}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Kategori usaha</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Controller
+              control={control}
+              name="category"
+              render={({ field }) => (
+                <ToggleGroup
+                  variant="outline"
+                  value={[field.value]}
+                  onValueChange={(v) => v[0] && field.onChange(v[0] as BusinessCategory)}
+                  className="flex-wrap justify-start"
+                >
+                  {Object.entries(BUSINESS_CATEGORY_LABELS).map(([value, label]) => (
+                    <ToggleGroupItem key={value} value={value} className="px-3">
+                      {label}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              )}
+            />
           </CardContent>
         </Card>
 

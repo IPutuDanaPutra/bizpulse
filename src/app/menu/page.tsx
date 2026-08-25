@@ -15,6 +15,7 @@ import type { MenuItem } from "@/lib/types";
 import { getApiKey, getMenuItems, saveMenuItems } from "@/lib/local-store";
 import { parseSpreadsheet, type SpreadsheetPreview } from "@/lib/parse-spreadsheet";
 import { EmptyState } from "@/components/empty-state";
+import { ScrollFade } from "@/components/scroll-fade";
 import { TaskRows, useStagedProgress } from "@/components/task-rows";
 
 interface DraftRow {
@@ -209,7 +210,7 @@ export default function MenuPage() {
         <CardContent className="pt-6">
           <div
             {...getRootProps()}
-            className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed p-10 text-center transition-colors ${
+            className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed p-12 text-center transition-colors ${
               isDragActive ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-border"
             }`}
           >
@@ -372,7 +373,7 @@ export default function MenuPage() {
                   ))}
                 </div>
               )}
-              <div className="overflow-x-auto">
+              <ScrollFade contentClassName="max-h-96 overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -405,7 +406,7 @@ export default function MenuPage() {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </ScrollFade>
             </>
           )}
         </CardContent>

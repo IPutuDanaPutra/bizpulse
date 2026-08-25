@@ -106,7 +106,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 pb-16 md:pb-0">{children}</main>
+        <main className="flex flex-1 flex-col pb-16 md:pb-0">{children}</main>
 
         <BottomTabBar pathname={pathname} />
       </SidebarInset>
