@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BizPulse
 
-## Getting Started
+**Know what's happening. Act ahead.**
 
-First, run the development server:
+A dashboard for Indonesian UMKM (micro/small business) owners that pulls today's weather and upcoming public holidays automatically, then has AI synthesize both into one actionable daily recommendation — no manual searching, no cross-referencing multiple apps.
+
+## Problem
+
+UMKM owners make daily operational decisions (stock, staffing, promo timing) based on gut feeling, not external signals. They don't systematically check weather forecasts or upcoming holidays before deciding what to prepare.
+
+## How it works
+
+1. On page load, weather ([Open-Meteo](https://open-meteo.com)) and public holiday ([Nager.Date](https://date.nager.at)) data fetch in parallel — both are free, keyless, and unlimited at this scale, so there's no manual "search" button.
+2. Once both resolve, the combined data + business category is sent to DeepSeek (`deepseek-v4-flash`) to generate one grounded, concrete recommendation.
+3. The AI response is cached per day (per date + location + business category) in `localStorage`, so reopening the app the same day doesn't regenerate it.
+
+## Tech stack
+
+- Next.js (App Router)
+- shadcn/ui (neutral base) + Tailwind CSS
+- lucide-react
+- DeepSeek API via the OpenAI-compatible SDK
+
+## Getting started
 
 ```bash
+npm install
+cp .env.local.example .env.local   # then fill in DEEPSEEK_API_KEY
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Variable | Description |
+|---|---|
+| `DEEPSEEK_API_KEY` | DeepSeek API key, used server-side only |
+| `NEXT_PUBLIC_DEFAULT_COUNTRY` | Default country code for holiday lookups (`ID`) |
