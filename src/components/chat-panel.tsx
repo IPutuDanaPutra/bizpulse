@@ -67,7 +67,7 @@ export function ChatPanel({
             <EmptyState
               icon={MessageSquare}
               headline="Belum bisa chat"
-              body="Tambahkan API key di Settings dulu."
+              body="Tambahkan API key di Pengaturan dulu."
             />
           ) : messages.length === 0 ? (
             <EmptyState

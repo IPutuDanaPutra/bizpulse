@@ -82,7 +82,7 @@ export default function MenuPage() {
 
     if (file.type.startsWith("image/")) {
       const apiKey = getApiKey();
-      if (!apiKey) return setUploadError("Tambahkan API key di Settings dulu untuk membaca gambar menu.");
+      if (!apiKey) return setUploadError("Tambahkan API key di Pengaturan dulu untuk membaca gambar menu.");
       setProcessingKind("image");
       try {
         const dataUrl = await fileToDataUrl(file);
@@ -103,7 +103,7 @@ export default function MenuPage() {
       }
     } else if (file.type === "application/pdf") {
       const apiKey = getApiKey();
-      if (!apiKey) return setUploadError("Tambahkan API key di Settings dulu untuk membaca PDF.");
+      if (!apiKey) return setUploadError("Tambahkan API key di Pengaturan dulu untuk membaca PDF.");
       setProcessingKind("pdf");
       try {
         const fileBase64 = await fileToBase64(file);

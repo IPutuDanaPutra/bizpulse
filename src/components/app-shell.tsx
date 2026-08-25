@@ -22,10 +22,10 @@ import { Logo } from "@/components/logo";
 import { LayoutDashboard, Building2, Package, Settings, Info, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 const NAV = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/", label: "Beranda", icon: LayoutDashboard },
   { href: "/profile", label: "Profil Bisnis", icon: Building2 },
   { href: "/menu", label: "Menu & Produk", icon: Package },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/settings", label: "Pengaturan", icon: Settings },
 ] as const;
 
 const ABOUT = { href: "/about", label: "Tentang", icon: Info } as const;

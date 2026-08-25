@@ -1,28 +1,5 @@
 import { Separator } from "@/components/ui/separator";
-import { DayStrip } from "@/components/day-strip";
 import { CloudRain, CalendarDays, Package } from "lucide-react";
-import type { WeatherDay, HolidayEntry } from "@/lib/types";
-
-// Purely illustrative — the same day-strip pattern as the Dashboard, static, to open the page with
-// the same visual identity instead of straight into a heading.
-const SAMPLE_WEEK: WeatherDay[] = Array.from({ length: 7 }, (_, i) => ({
-  date: new Date(2026, 0, i + 1).toISOString(),
-  weatherCode: 1,
-  tempMax: 30,
-  tempMin: 24,
-  precipitationProbability: 40,
-  precipitationSum: 2,
-  windSpeedMax: 10,
-  uvIndexMax: 7,
-  confidenceTier: "actionable",
-}));
-const SAMPLE_HOLIDAY: HolidayEntry = {
-  date: "2026-01-04",
-  localName: "",
-  name: "",
-  isLongWeekend: false,
-  daysUntil: 3,
-};
 
 const SIGNALS = [
   {
@@ -45,11 +22,9 @@ const SIGNALS = [
 export default function AboutPage() {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-10 p-6 py-12">
-      <div className="flex flex-col-reverse items-center gap-6 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold leading-snug">Tentang BizPulse</h1>
-        <div className="w-full max-w-56">
-          <DayStrip days={SAMPLE_WEEK} holiday={SAMPLE_HOLIDAY} selectedIndex={2} interactive={false} onSelect={() => {}} />
-        </div>
+      <div className="flex flex-col gap-1.5">
+        <h1 className="text-3xl font-bold leading-snug">Tentang BizPulse</h1>
+        <p className="text-lg text-muted-foreground">Kesadaran situasional harian untuk usaha kecil.</p>
       </div>
 
       <article className="flex flex-col gap-4 leading-[1.6] text-foreground/90">

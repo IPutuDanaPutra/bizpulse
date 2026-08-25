@@ -13,10 +13,10 @@ import {
 import { LayoutDashboard, Building2, Package, Settings, Info } from "lucide-react";
 
 const DESTINATIONS = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/", label: "Beranda", icon: LayoutDashboard },
   { href: "/profile", label: "Profil Bisnis", icon: Building2 },
   { href: "/menu", label: "Menu & Produk", icon: Package },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/settings", label: "Pengaturan", icon: Settings },
   { href: "/about", label: "Tentang", icon: Info },
 ] as const;
 

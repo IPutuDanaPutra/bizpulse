@@ -160,8 +160,10 @@
   }
 }
 
-/* AI presence markers (v5 §5): a gradient chip + an animated gradient border reserved strictly for
-   "AI is actively generating right now" — never a resting state, so the motion stays meaningful. */
+/* AI presence markers (v5 §5, v6 §3.2): a solid gradient chip — not a faint wash, it needs to read as
+   "gradient" at chip size — plus an animated gradient border reserved strictly for "AI is actively
+   generating right now" (never a resting state, so the motion stays meaningful). Pill shape matches the
+   unified badge shape (v6 §3.1); the gradient itself is what marks this chip as different, not its shape. */
 .ai-chip {
   display: inline-flex;
   align-items: center;
@@ -169,10 +171,8 @@
   padding: 2px 10px;
   font-size: 12px;
   font-weight: 500;
-  background: linear-gradient(135deg, color-mix(in oklab, var(--primary) 12%, transparent), color-mix(in oklab, var(--primary-warm) 12%, transparent));
-  border: 1px solid;
-  border-image: linear-gradient(135deg, var(--primary), var(--primary-warm)) 1;
-  color: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-warm) 100%);
+  color: #ffffff;
 }
 
 @property --ai-angle {

@@ -113,10 +113,10 @@ export function RecommendationCard({
           <EmptyState
             icon={KeyRound}
             headline="Belum terhubung ke AI"
-            body="Tambahkan API key di Settings buat dapetin rekomendasi harian."
+            body="Tambahkan API key di Pengaturan buat dapetin rekomendasi harian."
             action={
               <Button render={<Link href="/settings" />} size="sm" variant="outline">
-                <KeyRound className="size-4" /> Buka Settings
+                <KeyRound className="size-4" /> Buka Pengaturan
               </Button>
             }
           />
