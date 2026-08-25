@@ -5,14 +5,17 @@ import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ImagePlus, Loader2, Trash2, Tag, ImageIcon, FileText, FileSpreadsheet, AlertTriangle } from "lucide-react";
+import { ImagePlus, Trash2, Tag, ImageIcon, FileText, FileSpreadsheet, AlertTriangle, Package } from "lucide-react";
 import type { MenuItem } from "@/lib/types";
 import { getApiKey, getMenuItems, saveMenuItems } from "@/lib/local-store";
 import { parseSpreadsheet, type SpreadsheetPreview } from "@/lib/parse-spreadsheet";
+import { EmptyState } from "@/components/empty-state";
+import { TaskRows, useStagedProgress } from "@/components/task-rows";
 
 interface DraftRow {
   name: string;
@@ -28,9 +31,15 @@ const ACCEPT = {
   "text/csv": [".csv"],
 };
 
+const TASK_STEPS: Record<"image" | "pdf" | "spreadsheet", readonly string[]> = {
+  image: ["Membaca gambar menu...", "Mengekstrak item...", "Selesai"],
+  pdf: ["Mengekstrak teks dari PDF...", "Menyusun daftar produk...", "Selesai"],
+  spreadsheet: ["Membaca file...", "Selesai"],
+};
+
 export default function MenuPage() {
   const [items, setItems] = useState<MenuItem[]>([]);
-  const [processingLabel, setProcessingLabel] = useState<string | null>(null);
+  const [processingKind, setProcessingKind] = useState<"image" | "pdf" | "spreadsheet" | null>(null);
   const [draft, setDraft] = useState<DraftRow[] | null>(null);
   const [draftSource, setDraftSource] = useState<MenuItem["source"]>("manual");
   const [spreadsheet, setSpreadsheet] = useState<SpreadsheetPreview | null>(null);
@@ -41,6 +50,12 @@ export default function MenuPage() {
   });
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [extractionWarning, setExtractionWarning] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+
+  const stagedIndex = useStagedProgress(
+    processingKind ? TASK_STEPS[processingKind] : TASK_STEPS.spreadsheet,
+    processingKind !== null
+  );
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync read from localStorage on mount
@@ -68,7 +83,7 @@ export default function MenuPage() {
     if (file.type.startsWith("image/")) {
       const apiKey = getApiKey();
       if (!apiKey) return setUploadError("Tambahkan API key di Settings dulu untuk membaca gambar menu.");
-      setProcessingLabel("Membaca gambar menu...");
+      setProcessingKind("image");
       try {
         const dataUrl = await fileToDataUrl(file);
         const res = await fetch("/api/menu/extract-image", {
@@ -84,12 +99,12 @@ export default function MenuPage() {
       } catch (err) {
         setUploadError(err instanceof Error ? err.message : "Gagal membaca gambar menu.");
       } finally {
-        setProcessingLabel(null);
+        setProcessingKind(null);
       }
     } else if (file.type === "application/pdf") {
       const apiKey = getApiKey();
       if (!apiKey) return setUploadError("Tambahkan API key di Settings dulu untuk membaca PDF.");
-      setProcessingLabel("Mengekstrak dari PDF...");
+      setProcessingKind("pdf");
       try {
         const fileBase64 = await fileToBase64(file);
         const res = await fetch("/api/menu/extract-pdf", {
@@ -105,10 +120,10 @@ export default function MenuPage() {
       } catch (err) {
         setUploadError(err instanceof Error ? err.message : "Gagal membaca PDF.");
       } finally {
-        setProcessingLabel(null);
+        setProcessingKind(null);
       }
     } else {
-      setProcessingLabel("Membaca spreadsheet...");
+      setProcessingKind("spreadsheet");
       try {
         const preview = await parseSpreadsheet(file);
         setSpreadsheet(preview);
@@ -116,7 +131,7 @@ export default function MenuPage() {
       } catch {
         setUploadError("Gagal membaca spreadsheet.");
       } finally {
-        setProcessingLabel(null);
+        setProcessingKind(null);
       }
     }
   }, []);
@@ -178,6 +193,9 @@ export default function MenuPage() {
     setItems(merged);
   }
 
+  const categories = Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c)));
+  const filteredItems = categoryFilter ? items.filter((i) => i.category === categoryFilter) : items;
+
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6">
       <div>
@@ -210,10 +228,12 @@ export default function MenuPage() {
         </Alert>
       )}
 
-      {processingLabel && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> {processingLabel}
-        </div>
+      {processingKind && (
+        <Card>
+          <CardContent className="pt-6">
+            <TaskRows steps={TASK_STEPS[processingKind]} activeIndex={stagedIndex} done={false} />
+          </CardContent>
+        </Card>
       )}
 
       {spreadsheet && (
@@ -321,22 +341,48 @@ export default function MenuPage() {
         <CardHeader>
           <CardTitle>Produk tersimpan ({items.length})</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-4">
           {items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Belum ada produk. Upload menu di atas untuk mulai.</p>
+            <EmptyState
+              icon={Package}
+              headline="Belum ada produk"
+              body="Upload menu atau daftar produk di atas untuk mulai."
+            />
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nama produk</TableHead>
-                    <TableHead>Kategori</TableHead>
-                    <TableHead>Harga</TableHead>
-                    <TableHead className="w-8" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((item) => (
+            <>
+              {categories.length > 1 && (
+                <div className="flex flex-wrap gap-1.5">
+                  <Badge
+                    variant={categoryFilter === null ? "default" : "outline"}
+                    className="cursor-pointer font-normal"
+                    onClick={() => setCategoryFilter(null)}
+                  >
+                    Semua
+                  </Badge>
+                  {categories.map((c) => (
+                    <Badge
+                      key={c}
+                      variant={categoryFilter === c ? "default" : "outline"}
+                      className="cursor-pointer font-normal"
+                      onClick={() => setCategoryFilter(c)}
+                    >
+                      {c}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nama produk</TableHead>
+                      <TableHead>Kategori</TableHead>
+                      <TableHead>Harga</TableHead>
+                      <TableHead className="w-8" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredItems.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>{item.name}</TableCell>
                       <TableCell className="text-muted-foreground">{item.category ?? "-"}</TableCell>
@@ -355,10 +401,11 @@ export default function MenuPage() {
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

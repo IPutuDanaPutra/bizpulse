@@ -97,7 +97,7 @@ export default function SettingsPage() {
                 <KeyRound className="size-4" />
                 <AlertTitle>Belum terhubung ke AI</AlertTitle>
                 <AlertDescription>
-                  Tanpa API key, Radar Usaha nggak bisa bikin rekomendasi harian. Cuaca dan kalender tetap tampil
+                  Tanpa API key, BizPulse nggak bisa bikin rekomendasi harian. Cuaca dan kalender tetap tampil
                   seperti biasa.
                 </AlertDescription>
               </Alert>
@@ -148,7 +148,7 @@ export default function SettingsPage() {
         href="/about"
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground md:hidden"
       >
-        <Info className="size-4" /> Tentang Radar Usaha
+        <Info className="size-4" /> Tentang BizPulse
       </Link>
     </div>
   );

@@ -40,7 +40,7 @@ export function AddressSearch({
         render={
           <Button variant="outline" className="w-full justify-start font-normal">
             <MapPin className="size-4 shrink-0" />
-            <span className="truncate">{value || "Cari alamat..."}</span>
+            <span className="truncate">{value || "Cari alamat usaha kamu..."}</span>
           </Button>
         }
       />

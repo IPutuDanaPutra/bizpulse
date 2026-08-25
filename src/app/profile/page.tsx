@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,6 +14,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AddressSearch } from "@/components/address-search";
 import { FieldHint } from "@/components/field-hint";
+import { ProfileWizard } from "@/components/profile-wizard";
 import {
   AREA_TYPE_LABELS,
   BUSINESS_CATEGORY_LABELS,
@@ -29,6 +29,7 @@ import {
 import { getProfile, saveProfile } from "@/lib/local-store";
 
 const schema = z.object({
+  businessName: z.string().min(1, "Isi nama bisnis kamu"),
   category: z.enum(["fnb_outdoor", "fnb_delivery", "retail", "jasa", "other"]),
   locationLabel: z.string().min(1, "Pilih lokasi usaha"),
   lat: z.number(),
@@ -45,6 +46,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 const DEFAULTS: FormValues = {
+  businessName: "",
   category: "fnb_outdoor",
   locationLabel: "",
   lat: -6.2088,
@@ -55,8 +57,7 @@ const DEFAULTS: FormValues = {
 };
 
 export default function ProfilePage() {
-  const router = useRouter();
-  const [isFirstRun, setIsFirstRun] = useState(false);
+  const [existingProfile, setExistingProfile] = useState<BusinessProfile | null | undefined>(undefined);
 
   const { control, register, handleSubmit, watch, reset, setValue, formState } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -65,8 +66,10 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const existing = getProfile();
+    setExistingProfile(existing);
     if (existing) {
       reset({
+        businessName: existing.businessName,
         category: existing.category,
         locationLabel: existing.location.label,
         lat: existing.location.lat,
@@ -79,8 +82,6 @@ export default function ProfilePage() {
         isPerishable: existing.isPerishable,
         isOnLocationService: existing.isOnLocationService,
       });
-    } else {
-      setIsFirstRun(true);
     }
   }, [reset]);
 
@@ -89,6 +90,7 @@ export default function ProfilePage() {
 
   function onSubmit(values: FormValues) {
     const profile: BusinessProfile = {
+      businessName: values.businessName,
       category: values.category,
       location: { lat: values.lat, lon: values.lon, label: values.locationLabel },
       areaType: values.areaType,
@@ -101,21 +103,38 @@ export default function ProfilePage() {
     };
     saveProfile(profile);
     toast.success("Profil bisnis tersimpan.");
-    if (isFirstRun) router.push("/");
   }
+
+  // Still reading localStorage — avoid a flash of the wizard before we know a profile already exists.
+  if (existingProfile === undefined) return null;
+
+  // First-time setup gets the guided, one-question-at-a-time flow. Editing later uses the full form below.
+  if (existingProfile === null) return <ProfileWizard />;
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
       <div>
-        <h1 className="text-xl font-semibold">Profil Usaha</h1>
+        <h1 className="text-xl font-semibold">Profil Bisnis</h1>
         <p className="text-sm text-muted-foreground">
-          {isFirstRun
-            ? "Ceritakan sedikit tentang usahamu supaya rekomendasi harian lebih relevan."
-            : "Bisa diubah kapan saja."}
+          Semakin lengkap profil ini, semakin tajam rekomendasi harian yang BizPulse berikan — lokasi dan kategori
+          usaha kamu langsung memengaruhi apa yang disarankan tiap hari.
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Identitas usaha</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            <Label htmlFor="businessName">Nama Bisnis</Label>
+            <Input id="businessName" placeholder="cth. Kedai Kopi Senja" {...register("businessName")} />
+            {formState.errors.businessName && (
+              <p className="text-xs text-destructive">{formState.errors.businessName.message}</p>
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Kategori usaha</CardTitle>
@@ -303,7 +322,7 @@ export default function ProfilePage() {
           </Card>
         )}
 
-        <Button type="submit">{isFirstRun ? "Mulai" : "Simpan perubahan"}</Button>
+        <Button type="submit">Simpan</Button>
       </form>
     </div>
   );

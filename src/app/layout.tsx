@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Radar Usaha",
+  title: "BizPulse",
   description: "Rekomendasi harian untuk UMKM berdasarkan cuaca dan hari besar.",
 };
 

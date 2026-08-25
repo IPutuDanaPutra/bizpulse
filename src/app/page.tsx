@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Dashboard } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
-import { Radar } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
+import { Activity } from "lucide-react";
 import { getProfile } from "@/lib/local-store";
 import type { BusinessProfile } from "@/lib/types";
 
@@ -20,14 +21,12 @@ export default function Home() {
 
   if (profile === null) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
-        <Radar className="size-10 text-[var(--signal-blue)]" />
-        <div>
-          <h1 className="text-xl font-semibold">Selamat datang di Radar Usaha</h1>
-          <p className="text-sm text-muted-foreground">Lengkapi profil usahamu dulu untuk mulai lihat rekomendasi harian.</p>
-        </div>
-        <Button render={<Link href="/profile" />}>Isi Profil Usaha</Button>
-      </div>
+      <EmptyState
+        icon={Activity}
+        headline="Selamat datang di BizPulse"
+        body="Lengkapi profil usahamu dulu untuk mulai lihat rekomendasi harian."
+        action={<Button render={<Link href="/profile" />}>Isi Profil Bisnis</Button>}
+      />
     );
   }
 

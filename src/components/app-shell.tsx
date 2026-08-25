@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { LayoutDashboard, Building2, Package, Settings, Info, ChevronsLeft, ChevronsRight, Radar } from "lucide-react";
+import { CommandPalette } from "@/components/command-palette";
+import { LayoutDashboard, Building2, Package, Settings, Info, ChevronsLeft, ChevronsRight, Activity } from "lucide-react";
 
 const NAV = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -37,17 +38,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
+      <CommandPalette />
       <Sidebar collapsible="icon" className="hidden md:flex">
         <SidebarHeader>
           <div className="flex items-center gap-2 px-2 py-1.5">
             <span className="relative flex size-5 shrink-0 items-center justify-center">
-              <Radar className="size-5 text-[var(--signal-blue)]" />
+              <Activity className="size-5 text-[var(--signal-blue)]" />
               <span className="absolute -right-0.5 -top-0.5 flex size-2">
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-[var(--signal-blue)] opacity-75" />
                 <span className="relative inline-flex size-2 rounded-full bg-[var(--signal-blue)]" />
               </span>
             </span>
-            <span className="font-semibold group-data-[collapsible=icon]:hidden">Radar Usaha</span>
+            <span className="font-semibold group-data-[collapsible=icon]:hidden">BizPulse</span>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -104,8 +106,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <SidebarInset>
         <header className="flex h-14 items-center gap-2 border-b px-4 md:hidden">
-          <Radar className="size-5 text-[var(--signal-blue)]" />
-          <span className="font-semibold">Radar Usaha</span>
+          <Activity className="size-5 text-[var(--signal-blue)]" />
+          <span className="font-semibold">BizPulse</span>
           <div className="ml-auto">
             <ThemeToggle />
           </div>

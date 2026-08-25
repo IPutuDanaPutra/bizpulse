@@ -40,6 +40,7 @@ export type Exposure = "indoor" | "outdoor" | "both";
 export type DeliveryStatus = "none" | "own" | "platform";
 
 export interface BusinessProfile {
+  businessName: string;
   category: BusinessCategory;
   location: { lat: number; lon: number; label: string };
   areaType: AreaType;
@@ -58,9 +59,28 @@ export interface BusinessContext {
   location: { lat: number; lon: number; label: string };
 }
 
+/** Structured recommendation — Beautiful UI's Recommendation Card pattern (v4): headline + reasoning +
+ * confidence meter + primary action + alternatives, instead of one paragraph of prose. */
+export interface RecommendationAlternative {
+  label: string;
+  confidence: number; // 0-100
+}
+
+export interface Recommendation {
+  date: string;
+  headline: string;
+  reasoning: string;
+  confidenceTier: ConfidenceTier;
+  confidenceScore: number; // 0-100
+  primaryAction: string;
+  alternatives: RecommendationAlternative[];
+  generatedAt: string;
+}
+
+/** @deprecated superseded by Recommendation (v4) — kept so old cached v2/v3 entries don't crash JSON.parse. */
 export interface DailyInsight {
   date: string;
-  text: string; // streamed 1-2 sentence recommendation
+  text: string;
   generatedAt: string;
 }
 
