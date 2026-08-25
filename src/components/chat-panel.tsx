@@ -9,11 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-state";
 import { ScrollFade } from "@/components/scroll-fade";
-import { Send, MessageSquare, Package } from "lucide-react";
+import { ThinkingTrace } from "@/components/thinking-trace";
+import { ContextCard } from "@/components/context-card";
+import { Send, MessageSquare } from "lucide-react";
 import { findMentionedProduct } from "@/lib/find-mentioned-product";
+import { pickFollowUps, CHAT_STARTERS } from "@/lib/follow-up-chips";
 import type { BusinessProfile, HolidayEntry, MenuItem, WeatherDay } from "@/lib/types";
 
-const FOLLOW_UPS = ["Kenapa confidence-nya cuma segini?", "Bandingkan sama kemarin", "Ada rekomendasi lain?"];
+const CHAT_THINKING_STEPS = ["Membaca konteks bisnis", "Menyusun jawaban"];
 
 export function ChatPanel({
   open,
@@ -50,60 +53,77 @@ export function ChatPanel({
   }
 
   const lastMessage = messages[messages.length - 1];
-  const showFollowUps = lastMessage?.role === "assistant" && !isStreaming;
+  const lastReplyText =
+    lastMessage?.role === "assistant" ? lastMessage.parts.map((p) => (p.type === "text" ? p.text : "")).join("") : "";
+  const showFollowUps = lastMessage?.role === "assistant" && !isStreaming && lastReplyText.length > 0;
+  const followUps = showFollowUps ? pickFollowUps(lastReplyText, menuItems) : [];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
+      <SheetContent className="flex w-full flex-col gap-0 p-0 sm:max-w-[440px]">
         <SheetHeader className="border-b">
-          <SheetTitle className="flex items-center gap-2">
-            <MessageSquare className="size-4" /> Chat lebih lanjut
-            <span className="ai-chip">AI</span>
-          </SheetTitle>
+          <SheetTitle>{profile.businessName}</SheetTitle>
           <SheetDescription>Tanya apa saja soal rekomendasi hari ini.</SheetDescription>
         </SheetHeader>
 
-        <ScrollFade className="min-h-0 flex-1" contentClassName="flex h-full flex-col gap-3 p-4">
+        <ScrollFade className="min-h-0 flex-1" contentClassName="flex h-full flex-col gap-4 p-4">
           {!apiKey ? (
-            <EmptyState
-              icon={MessageSquare}
-              headline="Belum bisa chat"
-              body="Tambahkan API key di Pengaturan dulu."
-            />
+            <EmptyState icon={MessageSquare} headline="Belum bisa chat" body="Tambahkan API key di Pengaturan dulu." />
           ) : messages.length === 0 ? (
             <EmptyState
               icon={MessageSquare}
-              headline="Belum ada percakapan"
-              body="Mulai dengan tanya sesuatu soal rekomendasi hari ini."
+              headline="Tanya apa aja soal rekomendasi hari ini"
+              action={
+                <div className="flex flex-wrap justify-center gap-1.5">
+                  {CHAT_STARTERS.map((q) => (
+                    <Badge
+                      key={q}
+                      variant="outline"
+                      className="cursor-pointer font-normal hover:bg-accent"
+                      onClick={() => submit(q)}
+                    >
+                      {q}
+                    </Badge>
+                  ))}
+                </div>
+              }
             />
           ) : (
             messages.map((m, i) => {
               const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
-              const isLastStreaming = isStreaming && i === messages.length - 1 && m.role === "assistant";
+              const isLast = i === messages.length - 1;
+              const isThisStreaming = isStreaming && isLast && m.role === "assistant";
               const mentioned = m.role === "assistant" ? findMentionedProduct(text, menuItems) : null;
 
+              if (m.role === "user") {
+                return (
+                  <div key={m.id} className="ml-auto max-w-[75%] rounded-2xl bg-muted px-3 py-2 text-sm">
+                    {text}
+                  </div>
+                );
+              }
+
+              // AI replies: no bubble background — plain text on the panel, so it reads as the panel
+              // talking to you rather than a boxed-in message (v9 §2.4).
               return (
-                <div
-                  key={m.id}
-                  className={`flex flex-col gap-1 rounded-lg px-3 py-2 text-sm ${
-                    m.role === "user"
-                      ? "ml-8 self-end bg-[var(--primary)] text-[var(--primary-foreground)]"
-                      : `mr-8 self-start bg-muted ${isLastStreaming ? "ai-processing-border" : ""}`
-                  }`}
-                >
-                  <span>{text || (isLastStreaming ? "..." : "")}</span>
-                  {mentioned && (
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Package className="size-3" /> Menyebut {mentioned.name} dari Menu & Produk kamu.
-                    </span>
+                <div key={m.id} className="flex max-w-[90%] flex-col gap-2">
+                  {isThisStreaming && text.length === 0 ? (
+                    <ThinkingTrace steps={CHAT_THINKING_STEPS} label="Menyusun jawaban..." />
+                  ) : (
+                    <div className="flex flex-col gap-1.5">
+                      <span className="ai-chip w-fit">AI</span>
+                      <p className="text-sm">{text}</p>
+                    </div>
                   )}
+                  {mentioned && <ContextCard item={mentioned} />}
                 </div>
               );
             })
           )}
-          {showFollowUps && (
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {FOLLOW_UPS.map((q) => (
+
+          {followUps.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {followUps.map((q) => (
                 <Badge
                   key={q}
                   variant="outline"
@@ -127,10 +147,17 @@ export function ChatPanel({
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={apiKey ? "Tulis pertanyaan..." : "Butuh API key dulu"}
+            placeholder={apiKey ? "Tanya sesuatu..." : "Butuh API key dulu"}
             disabled={!apiKey}
+            className="rounded-full"
           />
-          <Button type="submit" size="icon-sm" disabled={!apiKey || !input.trim() || isStreaming}>
+          <Button
+            type="submit"
+            size="icon-sm"
+            className="rounded-full text-[var(--primary-foreground)]"
+            style={{ background: "linear-gradient(135deg, var(--primary), var(--primary-warm))" }}
+            disabled={!apiKey || !input.trim() || isStreaming}
+          >
             <Send className="size-4" />
           </Button>
         </form>
