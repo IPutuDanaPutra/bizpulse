@@ -81,8 +81,11 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --insight-accent: oklch(0.75 0.13 75); /* muted amber — the AI-insight card only */
-  --insight-accent-foreground: oklch(0.28 0.09 70);
+  /* the one deliberate accent (v2 design plan) — AI insight, today's radar ring, "connected" API key state.
+     Same hex in light and dark: it already contrasts against both zinc-50 and zinc-950. */
+  --signal-blue: #4a6cf7;
+  --signal-blue-foreground: #fafafa;
+  --font-sans: var(--font-geist-sans);
 }
 
 .dark {
@@ -117,8 +120,6 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-  --insight-accent: oklch(0.35 0.06 75);
-  --insight-accent-foreground: oklch(0.9 0.09 80);
 }
 
 @layer base {

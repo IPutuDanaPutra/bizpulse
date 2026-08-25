@@ -1,46 +1,35 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Onboarding } from "@/components/onboarding";
+import Link from "next/link";
 import { Dashboard } from "@/components/dashboard";
-import type { BusinessContext } from "@/lib/types";
-
-const STORAGE_KEY = "radar-usaha:business-context";
+import { Button } from "@/components/ui/button";
+import { Radar } from "lucide-react";
+import { getProfile } from "@/lib/local-store";
+import type { BusinessProfile } from "@/lib/types";
 
 export default function Home() {
-  const [ctx, setCtx] = useState<BusinessContext | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const [profile, setProfile] = useState<BusinessProfile | null | undefined>(undefined);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync read from localStorage on mount, not derivable from props/state
-      if (raw) setCtx(JSON.parse(raw));
-    } catch {
-      // ignore — falls back to onboarding
-    }
-    setLoaded(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync read from localStorage on mount, not derivable from props/state
+    setProfile(getProfile());
   }, []);
 
-  function saveCtx(next: BusinessContext) {
-    setCtx(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      // storage unavailable — context still works for this session
-    }
+  if (profile === undefined) return null;
+
+  if (profile === null) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
+        <Radar className="size-10 text-[var(--signal-blue)]" />
+        <div>
+          <h1 className="text-xl font-semibold">Selamat datang di Radar Usaha</h1>
+          <p className="text-sm text-muted-foreground">Lengkapi profil usahamu dulu untuk mulai lihat rekomendasi harian.</p>
+        </div>
+        <Button render={<Link href="/profile" />}>Isi Profil Usaha</Button>
+      </div>
+    );
   }
 
-  function reset() {
-    setCtx(null);
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // ignore
-    }
-  }
-
-  if (!loaded) return null;
-
-  return ctx ? <Dashboard ctx={ctx} onReset={reset} /> : <Onboarding onDone={saveCtx} />;
+  return <Dashboard profile={profile} />;
 }

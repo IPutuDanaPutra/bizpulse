@@ -28,6 +28,31 @@ export type BusinessCategory =
   | "jasa"
   | "other";
 
+export type AreaType =
+  | "jalan_utama"
+  | "dalam_gang"
+  | "mall"
+  | "perumahan"
+  | "wisata";
+
+export type Exposure = "indoor" | "outdoor" | "both";
+
+export type DeliveryStatus = "none" | "own" | "platform";
+
+export interface BusinessProfile {
+  category: BusinessCategory;
+  location: { lat: number; lon: number; label: string };
+  areaType: AreaType;
+  exposure: Exposure;
+  deliveryStatus: DeliveryStatus;
+  // adaptive, category-specific fields — all optional since they only apply to some categories
+  operatingHours?: string; // fnb / jasa
+  hasOutdoorSeating?: boolean; // fnb
+  isPerishable?: boolean; // retail
+  isOnLocationService?: boolean; // jasa
+}
+
+/** @deprecated kept for the v1 localStorage shape; BusinessProfile supersedes it. */
 export interface BusinessContext {
   category: BusinessCategory;
   location: { lat: number; lon: number; label: string };
@@ -35,9 +60,20 @@ export interface BusinessContext {
 
 export interface DailyInsight {
   date: string;
-  headline: string;
-  recommendation: string;
+  text: string; // streamed 1-2 sentence recommendation
   generatedAt: string;
+}
+
+export type MenuItemSource = "image" | "pdf" | "spreadsheet" | "manual";
+
+export interface MenuItem {
+  id: string;
+  name: string;
+  category?: string;
+  price?: number;
+  weatherSensitive?: boolean;
+  source: MenuItemSource;
+  addedAt: string;
 }
 
 export const BUSINESS_CATEGORY_LABELS: Record<BusinessCategory, string> = {
@@ -46,4 +82,24 @@ export const BUSINESS_CATEGORY_LABELS: Record<BusinessCategory, string> = {
   retail: "Retail/Toko",
   jasa: "Jasa",
   other: "Lainnya",
+};
+
+export const AREA_TYPE_LABELS: Record<AreaType, string> = {
+  jalan_utama: "Jalan utama",
+  dalam_gang: "Dalam gang",
+  mall: "Mall & pusat perbelanjaan",
+  perumahan: "Perumahan",
+  wisata: "Area wisata",
+};
+
+export const DELIVERY_STATUS_LABELS: Record<DeliveryStatus, string> = {
+  none: "Belum menerima delivery",
+  own: "Delivery sendiri",
+  platform: "Pakai platform (GoFood/GrabFood/ShopeeFood)",
+};
+
+export const EXPOSURE_LABELS: Record<Exposure, string> = {
+  indoor: "Indoor",
+  outdoor: "Outdoor",
+  both: "Keduanya",
 };

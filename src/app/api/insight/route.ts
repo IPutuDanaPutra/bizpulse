@@ -1,21 +1,38 @@
-import { NextResponse } from "next/server";
-import OpenAI from "openai";
-import type { BusinessCategory, HolidayEntry, WeatherDay } from "@/lib/types";
+import { createOpenAI } from "@ai-sdk/openai";
+import { streamText } from "ai";
+import type { BusinessProfile, HolidayEntry, MenuItem, WeatherDay } from "@/lib/types";
+import { AREA_TYPE_LABELS, DELIVERY_STATUS_LABELS } from "@/lib/types";
 
 const SYSTEM_PROMPT = `You are a concise local business advisor for Indonesian UMKM (micro/small business) owners.
-You will be given today's weather forecast, upcoming holiday context, and the owner's business category.
+You will be given today's weather forecast, upcoming holiday context, the owner's business profile, and (if available) their product/menu list.
 
 Rules:
 - Write in Bahasa Indonesia, casual-professional tone (like a sharp friend, not a corporate report).
 - ALWAYS reference at least one specific number from the data provided (percentage, mm, days-until) — never write a vague statement like "cuaca kurang mendukung" without a number backing it.
-- Give exactly ONE concrete, actionable recommendation — not a list. Pick the single most relevant action for this business category today.
+- Give exactly ONE concrete, actionable recommendation — not a list. Pick the single most relevant action for this business profile today.
+- If the business has delivery (own or via platform), reframe rain as opportunity where relevant ("hujan deras justru waktu ramai buat delivery"), not just risk. A walk-in-only business should still be told the honest downside.
+- If a product/menu list is provided, mention a specific product name when it's relevant to the recommendation — don't force it if nothing fits.
 - If nothing in the data is notable (calm weather, no near holiday), say so plainly in one short sentence rather than inventing significance. Do not pad.
-- Maximum 2 sentences total.
-- Respond as strict JSON: {"headline": string, "recommendation": string}. headline is a short 4-8 word tag for the moment, recommendation is the actual advice.`;
+- Maximum 2 sentences total.`;
 
-function buildUserPrompt(weather: WeatherDay, holiday: HolidayEntry | null, category: BusinessCategory) {
+function buildUserPrompt(
+  weather: WeatherDay,
+  holiday: HolidayEntry | null,
+  profile: BusinessProfile,
+  menuItems: MenuItem[]
+) {
+  const adaptive: string[] = [];
+  if (profile.operatingHours) adaptive.push(`Jam operasional: ${profile.operatingHours}`);
+  if (profile.hasOutdoorSeating !== undefined) adaptive.push(`Seating outdoor: ${profile.hasOutdoorSeating ? "ya" : "tidak"}`);
+  if (profile.isPerishable !== undefined) adaptive.push(`Barang mudah rusak kena cuaca: ${profile.isPerishable ? "ya" : "tidak"}`);
+  if (profile.isOnLocationService !== undefined) adaptive.push(`Layanan di lokasi pelanggan: ${profile.isOnLocationService ? "ya" : "tidak, di tempat sendiri"}`);
+
   return `
-Kategori usaha: ${category}
+Kategori usaha: ${profile.category}
+Tipe area: ${AREA_TYPE_LABELS[profile.areaType]}
+Paparan cuaca: ${profile.exposure}
+Status delivery: ${DELIVERY_STATUS_LABELS[profile.deliveryStatus]}
+${adaptive.join("\n")}
 
 Cuaca hari ini:
 - Peluang hujan: ${weather.precipitationProbability}%
@@ -29,41 +46,33 @@ Hari besar terdekat: ${
       : "Tidak ada dalam waktu dekat"
   }
 
-Berikan satu rekomendasi aksi untuk hari ini.
+${menuItems.length > 0 ? `Produk unggulan: ${menuItems.map((m) => m.name).join(", ")}` : ""}
+
+Berikan satu rekomendasi aksi untuk hari ini${menuItems.length > 0 ? ", sebut nama produk spesifik kalau relevan" : ""}.
 `.trim();
 }
 
 export async function POST(req: Request) {
-  const apiKey = process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: "DEEPSEEK_API_KEY not configured" }, { status: 500 });
-  }
-
-  const { weather, holiday, category } = (await req.json()) as {
+  const { weather, holiday, profile, menuItems, apiKey } = (await req.json()) as {
     weather: WeatherDay;
     holiday: HolidayEntry | null;
-    category: BusinessCategory;
+    profile: BusinessProfile;
+    menuItems: MenuItem[];
+    apiKey: string;
   };
 
-  const deepseek = new OpenAI({ apiKey, baseURL: "https://api.deepseek.com" });
+  if (!apiKey) {
+    return new Response("DeepSeek API key belum diisi.", { status: 400 });
+  }
 
-  const completion = await deepseek.chat.completions.create({
-    model: "deepseek-v4-flash",
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: buildUserPrompt(weather, holiday, category) },
-    ],
+  const deepseek = createOpenAI({ apiKey, baseURL: "https://api.deepseek.com" });
+
+  const result = streamText({
+    model: deepseek("deepseek-v4-flash"),
+    system: SYSTEM_PROMPT,
+    prompt: buildUserPrompt(weather, holiday, profile, menuItems),
     temperature: 0.7,
-    response_format: { type: "json_object" },
   });
 
-  const raw = completion.choices[0]?.message?.content ?? "{}";
-  const parsed = JSON.parse(raw) as { headline: string; recommendation: string };
-
-  return NextResponse.json({
-    date: weather.date,
-    headline: parsed.headline,
-    recommendation: parsed.recommendation,
-    generatedAt: new Date().toISOString(),
-  });
+  return result.toTextStreamResponse();
 }

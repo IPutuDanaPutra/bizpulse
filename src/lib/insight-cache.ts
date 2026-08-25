@@ -1,38 +1,22 @@
-import type { BusinessContext, DailyInsight, HolidayEntry, WeatherDay } from "./types";
+import type { BusinessProfile, DailyInsight } from "./types";
 
-function cacheKey(ctx: BusinessContext, date: string) {
-  return `radar-usaha:insight:${date}:${ctx.location.lat.toFixed(2)},${ctx.location.lon.toFixed(2)}:${ctx.category}`;
+function cacheKey(profile: BusinessProfile, date: string) {
+  return `radar-usaha:insight:${date}:${profile.location.lat.toFixed(2)},${profile.location.lon.toFixed(2)}:${profile.category}`;
 }
 
-export function getCachedInsight(ctx: BusinessContext, date: string): DailyInsight | null {
+export function getCachedInsight(profile: BusinessProfile, date: string): DailyInsight | null {
   try {
-    const raw = localStorage.getItem(cacheKey(ctx, date));
+    const raw = localStorage.getItem(cacheKey(profile, date));
     return raw ? (JSON.parse(raw) as DailyInsight) : null;
   } catch {
     return null;
   }
 }
 
-export async function getOrFetchInsight(
-  ctx: BusinessContext,
-  today: WeatherDay,
-  holiday: HolidayEntry | null
-): Promise<DailyInsight> {
-  const cached = getCachedInsight(ctx, today.date);
-  if (cached) return cached;
-
-  const res = await fetch("/api/insight", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ weather: today, holiday, category: ctx.category }),
-  });
-  if (!res.ok) throw new Error("Gagal membuat insight AI");
-  const insight = (await res.json()) as DailyInsight;
-
+export function setCachedInsight(profile: BusinessProfile, insight: DailyInsight) {
   try {
-    localStorage.setItem(cacheKey(ctx, today.date), JSON.stringify(insight));
+    localStorage.setItem(cacheKey(profile, insight.date), JSON.stringify(insight));
   } catch {
     // ponytail: localStorage can throw (private mode, quota) — insight still renders, just not cached
   }
-  return insight;
 }
